@@ -27,16 +27,16 @@ func TestNewTransaction(t *testing.T) {
 		t.Error(err)
 	}
 
-	if len(w1.GetTransactions()) != 2 {
-		t.Errorf("wrong number of transactions %v", w1.GetTransactions())
+	if w1.TransactionLen() != 2 {
+		t.Errorf("wrong number of transactions %v", w1.TransactionLen())
 	}
 
 	if err := w1.DeleteTransaction("test_tx-02"); err != nil {
 		t.Error(err)
 	}
 
-	if len(w1.GetTransactions()) != 1 {
-		t.Errorf("wrong number of transactions %v", w1.GetTransactions())
+	if w1.TransactionLen() != 1 {
+		t.Errorf("wrong number of transactions %v", w1.TransactionLen())
 	}
 
 	// close and remove the testing db
@@ -77,10 +77,10 @@ func TestAddInput(t *testing.T) {
 	if err := w1.AddInput("tx-01", adr.String(), 5); err != nil {
 		t.Error(err)
 	}
-	if len(w1.GetTransactions()) != 1 {
-		t.Errorf("wrong number of transactions %v", w1.GetTransactions())
+	if w1.TransactionLen() != 1 {
+		t.Errorf("wrong number of transactions %v", w1.TransactionLen())
 	}
-	t.Log(w1.GetTransactions())
+	t.Log(w1.TransactionLen())
 
 	// close and remove the testing db
 	if err := w1.Close(); err != nil {
@@ -188,7 +188,7 @@ func TestImportComposedTransaction(t *testing.T) {
 		t.Error(err)
 	}
 
-	trans := w1.GetTransactions()["txImported"]
+	trans := w1.GetTransaction("txImported")
 	if trans == nil {
 		t.Error("Transaction not found")
 	}
@@ -233,7 +233,7 @@ func TestImportComposedTransaction(t *testing.T) {
 		t.Error(err)
 	}
 
-	transStructSig := w1.GetTransactions()["txImportedSig"]
+	transStructSig := w1.GetTransaction("txImportedSig")
 	if transStructSig == nil {
 		t.Error("Transaction not found")
 	}

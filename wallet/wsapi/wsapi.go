@@ -470,7 +470,7 @@ func handleAllTransactions(params []byte) (interface{}, *factom.JSONError) {
 		if err := tx.UnmarshalBinary(p); err != nil {
 			return nil, newCustomInternalError(err.Error())
 		}
-		
+
 		r, err := factoidTxToTransaction(tx)
 		if err != nil {
 			return nil, newCustomInternalError(err.Error())
@@ -529,7 +529,7 @@ func handleNewTransaction(params []byte) (interface{}, *factom.JSONError) {
 		return nil, newCustomInternalError(err.Error())
 	}
 
-	tx := fctWallet.GetTransactions()[req.Name]
+	tx := fctWallet.GetTransaction(req.Name)
 	resp, err := factoidTxToTransaction(tx)
 	if err != nil {
 		return nil, newCustomInternalError(err.Error())
@@ -555,7 +555,7 @@ func handleDeleteTransaction(params []byte) (interface{}, *factom.JSONError) {
 
 func handleTmpTransactions(params []byte) (interface{}, *factom.JSONError) {
 	resp := new(multiTransactionResponse)
-	txs := fctWallet.GetTransactions()
+	txs := fctWallet.GetAllTransactions()
 
 	for name, tx := range txs {
 		r, err := factoidTxToTransaction(tx)
@@ -577,14 +577,12 @@ func handleTransactionHash(params []byte) (interface{}, *factom.JSONError) {
 	}
 
 	resp := new(factom.Transaction)
-	txs := fctWallet.GetTransactions()
+	tx := fctWallet.GetTransaction(req.Name)
 
-	for name, tx := range txs {
-		if name == req.Name {
-			resp.Name = name
-			resp.TxID = tx.GetSigHash().String()
-			return resp, nil
-		}
+	if tx != nil {
+		resp.Name = req.Name
+		resp.TxID = tx.GetSigHash().String()
+		return resp, nil
 	}
 
 	return nil, newCustomInternalError("Transaction not found")
@@ -599,7 +597,7 @@ func handleAddInput(params []byte) (interface{}, *factom.JSONError) {
 	if err := fctWallet.AddInput(req.Name, req.Address, req.Amount); err != nil {
 		return nil, newCustomInternalError(err.Error())
 	}
-	tx := fctWallet.GetTransactions()[req.Name]
+	tx := fctWallet.GetTransaction(req.Name)
 	resp, err := factoidTxToTransaction(tx)
 	if err != nil {
 		return nil, newCustomInternalError(err.Error())
@@ -619,7 +617,7 @@ func handleAddOutput(params []byte) (interface{}, *factom.JSONError) {
 	if err := fctWallet.AddOutput(req.Name, req.Address, req.Amount); err != nil {
 		return nil, newCustomInternalError(err.Error())
 	}
-	tx := fctWallet.GetTransactions()[req.Name]
+	tx := fctWallet.GetTransaction(req.Name)
 	resp, err := factoidTxToTransaction(tx)
 	if err != nil {
 		return nil, newCustomInternalError(err.Error())
@@ -639,7 +637,7 @@ func handleAddECOutput(params []byte) (interface{}, *factom.JSONError) {
 	if err := fctWallet.AddECOutput(req.Name, req.Address, req.Amount); err != nil {
 		return nil, newCustomInternalError(err.Error())
 	}
-	tx := fctWallet.GetTransactions()[req.Name]
+	tx := fctWallet.GetTransaction(req.Name)
 	resp, err := factoidTxToTransaction(tx)
 	if err != nil {
 		return nil, newCustomInternalError(err.Error())
@@ -663,7 +661,7 @@ func handleAddFee(params []byte) (interface{}, *factom.JSONError) {
 	if err := fctWallet.AddFee(req.Name, req.Address, rate); err != nil {
 		return nil, newCustomInternalError(err.Error())
 	}
-	tx := fctWallet.GetTransactions()[req.Name]
+	tx := fctWallet.GetTransaction(req.Name)
 	resp, err := factoidTxToTransaction(tx)
 	if err != nil {
 		return nil, newCustomInternalError(err.Error())
@@ -687,7 +685,7 @@ func handleSubFee(params []byte) (interface{}, *factom.JSONError) {
 	if err := fctWallet.SubFee(req.Name, req.Address, rate); err != nil {
 		return nil, newCustomInternalError(err.Error())
 	}
-	tx := fctWallet.GetTransactions()[req.Name]
+	tx := fctWallet.GetTransaction(req.Name)
 	resp, err := factoidTxToTransaction(tx)
 	if err != nil {
 		return nil, newCustomInternalError(err.Error())
@@ -709,7 +707,7 @@ func handleSignTransaction(params []byte) (interface{}, *factom.JSONError) {
 	if err := fctWallet.SignTransaction(req.Name, force); err != nil {
 		return nil, newCustomInternalError(err.Error())
 	}
-	tx := fctWallet.GetTransactions()[req.Name]
+	tx := fctWallet.GetTransaction(req.Name)
 	resp, err := factoidTxToTransaction(tx)
 	if err != nil {
 		return nil, newCustomInternalError(err.Error())

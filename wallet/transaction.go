@@ -27,7 +27,7 @@ var (
 )
 
 func (w *Wallet) NewTransaction(name string) error {
-	if _, exist := w.transactions[name]; exist {
+	if w.transactions.DoesTransactionExist(name) {
 		return ErrTXExists
 	}
 
@@ -46,23 +46,35 @@ func (w *Wallet) NewTransaction(name string) error {
 
 	t := new(factoid.Transaction)
 	t.SetTimestamp(primitives.NewTimestampNow())
-	w.transactions[name] = t
+	w.transactions.SetTransaction(name, t)
 	return nil
 }
 
 func (w *Wallet) DeleteTransaction(name string) error {
-	if _, exists := w.transactions[name]; !exists {
+	if w.transactions.DoesTransactionExist(name) == false {
 		return ErrTXNotExists
 	}
-	delete(w.transactions, name)
+	w.transactions.Delete(name)
 	return nil
 }
 
+func (w *Wallet) TransactionLen() int {
+	return w.transactions.Len()
+}
+
+func (w *Wallet) GetTransaction(name string) *factoid.Transaction {
+	return w.transactions.GetTransaction(name)
+}
+
+func (w *Wallet) GetAllTransactions() map[string]*factoid.Transaction {
+	return w.transactions.GetAllTransactions()
+}
+
 func (w *Wallet) AddInput(name, address string, amount uint64) error {
-	if _, exists := w.transactions[name]; !exists {
+	if w.transactions.DoesTransactionExist(name) == false {
 		return ErrTXNotExists
 	}
-	trans := w.transactions[name]
+	trans := w.transactions.GetTransaction(name)
 
 	a, err := w.GetFCTAddress(address)
 	if err == leveldb.ErrNotFound {
@@ -88,10 +100,10 @@ func (w *Wallet) AddInput(name, address string, amount uint64) error {
 }
 
 func (w *Wallet) AddOutput(name, address string, amount uint64) error {
-	if _, exists := w.transactions[name]; !exists {
+	if w.transactions.DoesTransactionExist(name) == false {
 		return ErrTXNotExists
 	}
-	trans := w.transactions[name]
+	trans := w.transactions.GetTransaction(name)
 
 	if !factom.IsValidAddress(address) {
 		return errors.New("Invalid Address")
@@ -113,10 +125,10 @@ func (w *Wallet) AddOutput(name, address string, amount uint64) error {
 }
 
 func (w *Wallet) AddECOutput(name, address string, amount uint64) error {
-	if _, exists := w.transactions[name]; !exists {
+	if w.transactions.DoesTransactionExist(name) == false {
 		return ErrTXNotExists
 	}
-	trans := w.transactions[name]
+	trans := w.transactions.GetTransaction(name)
 
 	if !factom.IsValidAddress(address) {
 		return errors.New("Invalid Address")
@@ -138,10 +150,10 @@ func (w *Wallet) AddECOutput(name, address string, amount uint64) error {
 }
 
 func (w *Wallet) AddFee(name, address string, rate uint64) error {
-	if _, exists := w.transactions[name]; !exists {
+	if w.transactions.DoesTransactionExist(name) == false {
 		return ErrTXNotExists
 	}
-	trans := w.transactions[name]
+	trans := w.transactions.GetTransaction(name)
 
 	{
 		ins, err := trans.TotalInputs()
@@ -187,10 +199,10 @@ func (w *Wallet) AddFee(name, address string, rate uint64) error {
 }
 
 func (w *Wallet) SubFee(name, address string, rate uint64) error {
-	if _, exists := w.transactions[name]; !exists {
+	if w.transactions.DoesTransactionExist(name) == false {
 		return ErrTXNotExists
 	}
-	trans := w.transactions[name]
+	trans := w.transactions.GetTransaction(name)
 
 	if !factom.IsValidAddress(address) {
 		return errors.New("Invalid Address")
@@ -235,10 +247,10 @@ func (w *Wallet) SubFee(name, address string, rate uint64) error {
 // keys from the wallet db
 // force=true ignores the existing balance and fee overpayment checks.
 func (w *Wallet) SignTransaction(name string, force bool) error {
-	tx, exists := w.transactions[name]
-	if !exists {
+	if w.transactions.DoesTransactionExist(name) == false {
 		return ErrTXNotExists
 	}
+	tx := w.transactions.GetTransaction(name)
 
 	if force == false {
 		// check that the address balances are sufficient for the transaction
@@ -278,15 +290,11 @@ func (w *Wallet) SignTransaction(name string, force bool) error {
 	return nil
 }
 
-func (w *Wallet) GetTransactions() map[string]*factoid.Transaction {
-	return w.transactions
-}
-
 func (w *Wallet) ComposeTransaction(name string) (*factom.JSON2Request, error) {
-	if _, exists := w.transactions[name]; !exists {
+	if w.transactions.DoesTransactionExist(name) == false {
 		return nil, ErrTXNotExists
 	}
-	trans := w.transactions[name]
+	trans := w.transactions.GetTransaction(name)
 
 	type txreq struct {
 		Transaction string `json:"transaction"`
@@ -317,7 +325,7 @@ func (w *Wallet) ImportComposedTransaction(name string, hexEncoded string) error
 		return err
 	}
 
-	w.transactions[name] = trans
+	w.transactions.SetTransaction(name, trans)
 	return nil
 }
 

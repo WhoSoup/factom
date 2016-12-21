@@ -9,7 +9,6 @@ import (
 	"os"
 
 	"github.com/FactomProject/factom"
-	"github.com/FactomProject/factomd/common/factoid"
 )
 
 // ImportWalletFromMnemonic creates a new wallet with a provided Mnemonic seed
@@ -38,7 +37,7 @@ func ImportWalletFromMnemonic(mnemonic, path string) (*Wallet, error) {
 	}
 
 	w := new(Wallet)
-	w.transactions = make(map[string]*factoid.Transaction)
+	w.transactions.Init()
 	w.WalletDatabaseOverlay = db
 
 	return w, nil

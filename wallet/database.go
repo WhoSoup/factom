@@ -6,6 +6,7 @@ package wallet
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/FactomProject/factom"
 	"github.com/FactomProject/factomd/common/factoid"
@@ -14,8 +15,60 @@ import (
 // Wallet is a connection to a Factom Wallet Database
 type Wallet struct {
 	*WalletDatabaseOverlay
-	transactions map[string]*factoid.Transaction
+	transactions TxMap
 	txdb         *TXDatabaseOverlay
+}
+
+type TxMap struct {
+	m            sync.RWMutex
+	transactions map[string]*factoid.Transaction
+}
+
+func (t *TxMap) GetAllTransactions() map[string]*factoid.Transaction {
+	t.m.RLock()
+	defer t.m.RUnlock()
+	answer := map[string]*factoid.Transaction{}
+	for k, v := range t.transactions {
+		answer[k] = v
+	}
+	return answer
+}
+
+func (t *TxMap) Init() {
+	t.m.Lock()
+	defer t.m.Unlock()
+	t.transactions = make(map[string]*factoid.Transaction)
+}
+
+func (t *TxMap) DoesTransactionExist(name string) bool {
+	t.m.RLock()
+	defer t.m.RUnlock()
+	_, ok := t.transactions[name]
+	return ok
+}
+
+func (t *TxMap) GetTransaction(name string) *factoid.Transaction {
+	t.m.RLock()
+	defer t.m.RUnlock()
+	return t.transactions[name]
+}
+
+func (t *TxMap) SetTransaction(name string, tx *factoid.Transaction) {
+	t.m.Lock()
+	defer t.m.Unlock()
+	t.transactions[name] = tx
+}
+
+func (t *TxMap) Delete(name string) {
+	t.m.Lock()
+	defer t.m.Unlock()
+	delete(t.transactions, name)
+}
+
+func (t *TxMap) Len() int {
+	t.m.RLock()
+	defer t.m.RUnlock()
+	return len(t.transactions)
 }
 
 func (w *Wallet) InitWallet() error {
@@ -31,7 +84,7 @@ func (w *Wallet) InitWallet() error {
 
 func NewOrOpenLevelDBWallet(path string) (*Wallet, error) {
 	w := new(Wallet)
-	w.transactions = make(map[string]*factoid.Transaction)
+	w.transactions.Init()
 	db, err := NewLevelDB(path)
 	if err != nil {
 		return nil, err
@@ -46,7 +99,7 @@ func NewOrOpenLevelDBWallet(path string) (*Wallet, error) {
 
 func NewOrOpenBoltDBWallet(path string) (*Wallet, error) {
 	w := new(Wallet)
-	w.transactions = make(map[string]*factoid.Transaction)
+	w.transactions.Init()
 	db, err := NewBoltDB(path)
 	if err != nil {
 		return nil, err
@@ -61,7 +114,7 @@ func NewOrOpenBoltDBWallet(path string) (*Wallet, error) {
 
 func NewMapDBWallet() (*Wallet, error) {
 	w := new(Wallet)
-	w.transactions = make(map[string]*factoid.Transaction)
+	w.transactions.Init()
 	db := NewMapDB()
 	w.WalletDatabaseOverlay = db
 	err := w.InitWallet()
