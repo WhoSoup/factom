@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"time"
 )
 
 type Chain struct {
@@ -119,7 +120,15 @@ func CommitChain(c *Chain, ec *ECAddress) (string, error) {
 		return "", err
 	}
 
-	resp, err := factomdRequest(req)
+	var resp *JSON2Response
+	for i := 0; i < 20; i++ {
+		resp, err = factomdRequest(req)
+		if err != nil || resp.Error != nil {
+			time.Sleep(1 * time.Second)
+		} else {
+			break
+		}
+	}
 	if err != nil {
 		return "", err
 	}
@@ -145,7 +154,13 @@ func RevealChain(c *Chain) (string, error) {
 		return "", err
 	}
 
-	resp, err := factomdRequest(req)
+	var resp *JSON2Response
+	for i := 0; i < 20; i++ {
+		resp, err = factomdRequest(req)
+		if err == nil && resp.Error == nil {
+			break
+		}
+	}
 	if err != nil {
 		return "", err
 	}

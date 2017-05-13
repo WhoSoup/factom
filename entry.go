@@ -238,7 +238,13 @@ func RevealEntry(e *Entry) (string, error) {
 		return "", err
 	}
 
-	resp, err := factomdRequest(req)
+	var resp *JSON2Response
+	for i := 0; i < 20; i++ {
+		resp, err = factomdRequest(req)
+		if err == nil && resp.Error == nil {
+			break
+		}
+	}
 	if err != nil {
 		return "", err
 	}
