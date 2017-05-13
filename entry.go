@@ -240,13 +240,21 @@ func RevealEntry(e *Entry) (string, error) {
 	}
 
 	var resp *JSON2Response
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 60; i++ {
 		resp, err = factomdRequest(req)
 		if err == nil && resp.Error == nil {
-			break
+			r := new(revealResponse)
+			if err := json.Unmarshal(resp.JSONResult(), r); err != nil {
+				continue
+			}
+			if len(r.Entry)== 0 {
+				continue
+			}
+			return r.Entry, nil
 		}
 		time.Sleep(time.Second)
 	}
+
 	if err != nil {
 		return "", err
 	}

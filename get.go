@@ -6,6 +6,7 @@ package factom
 
 import (
 	"encoding/json"
+	"time"
 )
 
 // GetECBalance returns the balance in factoshi (factoid * 1e8) of a given Entry
@@ -165,7 +166,24 @@ func GetChainHead(chainid string) (string, error) {
 
 	params := chainIDRequest{ChainID: chainid}
 	req := NewJSON2Request("chain-head", APICounter(), params)
-	resp, err := factomdRequest(req)
+	var resp *JSON2Response
+	var err error
+
+	for i:=0; i<10; i++ {
+		resp, err = factomdRequest(req)
+		if err == nil && resp.Error == nil {
+			head := new(chainHeadResponse)
+			if err := json.Unmarshal(resp.JSONResult(), head); err != nil {
+				continue
+			}
+			if len(head.ChainHead)==0 {
+				continue
+			}
+			return head.ChainHead, nil
+		}
+		time.Sleep(time.Second)
+	}
+
 	if err != nil {
 		return "", err
 	}
