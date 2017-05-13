@@ -7,6 +7,7 @@ package factom
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 type FactoidTxStatus struct {
@@ -72,11 +73,12 @@ func FactoidACK(txID, fullTransaction string) (*FactoidTxStatus, error) {
 
 	var resp *JSON2Response
 	var err error
-	for i:=0; i<20; i++ {
+	for i := 0; i < 20; i++ {
 		resp, err = factomdRequest(req)
 		if err == nil && resp.Error == nil {
-		 	break
+			break
 		}
+		time.Sleep(time.Second)
 	}
 	if err != nil {
 		return nil, err
@@ -99,11 +101,12 @@ func EntryACK(txID, fullTransaction string) (*EntryStatus, error) {
 	var resp *JSON2Response
 	var err error
 
-	for i:=0; i<20; i++ {
-	resp, err = factomdRequest(req)
-	if err == nil && resp.Error == nil {
-	break
-	}
+	for i := 0; i < 20; i++ {
+		resp, err = factomdRequest(req)
+		if err == nil && resp.Error == nil {
+			break
+		}
+		time.Sleep(time.Second)
 	}
 	if err != nil {
 		return nil, err

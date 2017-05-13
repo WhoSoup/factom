@@ -10,6 +10,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"time"
 )
 
 type Entry struct {
@@ -244,6 +245,7 @@ func RevealEntry(e *Entry) (string, error) {
 		if err == nil && resp.Error == nil {
 			break
 		}
+		time.Sleep(time.Second)
 	}
 	if err != nil {
 		return "", err

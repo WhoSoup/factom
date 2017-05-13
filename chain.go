@@ -160,6 +160,7 @@ func RevealChain(c *Chain) (string, error) {
 		if err == nil && resp.Error == nil {
 			break
 		}
+		time.Sleep(time.Second)
 	}
 	if err != nil {
 		return "", err
