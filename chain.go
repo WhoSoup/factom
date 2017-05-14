@@ -121,13 +121,19 @@ func CommitChain(c *Chain, ec *ECAddress) (string, error) {
 	}
 
 	var resp *JSON2Response
-	for i := 0; i < 20; i++ {
+	for i := 0; i < RetryAttempts; i++ {
 		resp, err = factomdRequest(req)
-		if err != nil || resp.Error != nil {
-			time.Sleep(1 * time.Second)
-		} else {
-			break
+		if err == nil && resp.Error == nil {
+			r := new(commitResponse)
+			if err := json.Unmarshal(resp.JSONResult(), r); err != nil {
+				continue
+			}
+			if len(r.TxID) == 0 {
+				continue
+			}
+			return r.TxID, nil
 		}
+		time.Sleep(TimeBetweenRetries)
 	}
 	if err != nil {
 		return "", err
@@ -142,7 +148,6 @@ func CommitChain(c *Chain, ec *ECAddress) (string, error) {
 
 	return r.TxID, nil
 }
-
 func RevealChain(c *Chain) (string, error) {
 	type revealResponse struct {
 		Message string `json:"message"`
@@ -155,12 +160,19 @@ func RevealChain(c *Chain) (string, error) {
 	}
 
 	var resp *JSON2Response
-	for i := 0; i < 20; i++ {
+	for i := 0; i < RetryAttempts; i++ {
 		resp, err = factomdRequest(req)
 		if err == nil && resp.Error == nil {
-			break
+			r := new(revealResponse)
+			if err := json.Unmarshal(resp.JSONResult(), r); err != nil {
+				continue
+			}
+			if len(r.Entry) == 0 {
+				continue
+			}
+			return r.Entry, nil
 		}
-		time.Sleep(time.Second)
+		time.Sleep(TimeBetweenRetries)
 	}
 	if err != nil {
 		return "", err

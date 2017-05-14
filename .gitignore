@@ -50,3 +50,4 @@ _testmain.go
 *.out
 .idea/
 ----*
+*.iml

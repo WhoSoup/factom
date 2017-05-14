@@ -169,14 +169,14 @@ func GetChainHead(chainid string) (string, error) {
 	var resp *JSON2Response
 	var err error
 
-	for i:=0; i<10; i++ {
+	for i := 0; i < 10; i++ {
 		resp, err = factomdRequest(req)
 		if err == nil && resp.Error == nil {
 			head := new(chainHeadResponse)
 			if err := json.Unmarshal(resp.JSONResult(), head); err != nil {
 				continue
 			}
-			if len(head.ChainHead)==0 {
+			if len(head.ChainHead) == 0 {
 				continue
 			}
 			return head.ChainHead, nil

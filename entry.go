@@ -213,7 +213,24 @@ func CommitEntry(e *Entry, ec *ECAddress) (string, error) {
 		return "", err
 	}
 
-	resp, err := factomdRequest(req)
+	var resp *JSON2Response
+	for i := 0; i < RetryAttempts; i++ {
+		resp, err = factomdRequest(req)
+
+		if err == nil && resp.Error == nil {
+			r := new(commitResponse)
+			if err := json.Unmarshal(resp.JSONResult(), r); err != nil {
+				continue
+			}
+			if len(r.TxID) == 0 {
+				continue
+			}
+			return r.TxID, nil
+		}
+
+		time.Sleep(TimeBetweenRetries)
+	}
+
 	if err != nil {
 		return "", err
 	}
@@ -240,19 +257,19 @@ func RevealEntry(e *Entry) (string, error) {
 	}
 
 	var resp *JSON2Response
-	for i := 0; i < 60; i++ {
+	for i := 0; i < RetryAttempts; i++ {
 		resp, err = factomdRequest(req)
 		if err == nil && resp.Error == nil {
 			r := new(revealResponse)
 			if err := json.Unmarshal(resp.JSONResult(), r); err != nil {
 				continue
 			}
-			if len(r.Entry)== 0 {
+			if len(r.Entry) == 0 {
 				continue
 			}
 			return r.Entry, nil
 		}
-		time.Sleep(time.Second)
+		time.Sleep(TimeBetweenRetries)
 	}
 
 	if err != nil {
