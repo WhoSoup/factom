@@ -73,12 +73,16 @@ func FactoidACK(txID, fullTransaction string) (*FactoidTxStatus, error) {
 
 	var resp *JSON2Response
 	var err error
-	for i := 0; i < 20; i++ {
+	for i := 0; i < RetryAttempts; i++ {
 		resp, err = factomdRequest(req)
 		if err == nil && resp.Error == nil {
-			break
+			eb := new(FactoidTxStatus)
+			if err := json.Unmarshal(resp.JSONResult(), eb); err != nil {
+				continue
+			}
+			return eb, nil
 		}
-		time.Sleep(time.Second)
+		time.Sleep(TimeBetweenRetries)
 	}
 	if err != nil {
 		return nil, err
@@ -101,12 +105,16 @@ func EntryACK(txID, fullTransaction string) (*EntryStatus, error) {
 	var resp *JSON2Response
 	var err error
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < RetryAttempts; i++ {
 		resp, err = factomdRequest(req)
 		if err == nil && resp.Error == nil {
-			break
+			eb := new(EntryStatus)
+			if err := json.Unmarshal(resp.JSONResult(), eb); err != nil {
+				continue
+			}
+			return eb, nil
 		}
-		time.Sleep(time.Second)
+		time.Sleep(TimeBetweenRetries)
 	}
 	if err != nil {
 		return nil, err
