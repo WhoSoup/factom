@@ -126,9 +126,11 @@ func CommitChain(c *Chain, ec *ECAddress) (string, error) {
 		if err == nil && resp.Error == nil {
 			r := new(commitResponse)
 			if err := json.Unmarshal(resp.JSONResult(), r); err != nil {
+				time.Sleep(TimeBetweenRetries)
 				continue
 			}
 			if len(r.TxID) == 0 {
+				time.Sleep(TimeBetweenRetries)
 				continue
 			}
 			return r.TxID, nil
@@ -165,9 +167,11 @@ func RevealChain(c *Chain) (string, error) {
 		if err == nil && resp.Error == nil {
 			r := new(revealResponse)
 			if err := json.Unmarshal(resp.JSONResult(), r); err != nil {
+				time.Sleep(TimeBetweenRetries)
 				continue
 			}
 			if len(r.Entry) == 0 {
+				time.Sleep(TimeBetweenRetries)
 				continue
 			}
 			return r.Entry, nil
