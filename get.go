@@ -358,7 +358,6 @@ func GetProperties() (string, string, string, string, string, string, string, st
 }
 
 func GetPendingEntries() (string, error) {
-
 	req := NewJSON2Request("pending-entries", APICounter(), nil)
 	resp, err := factomdRequest(req)
 
@@ -374,9 +373,15 @@ func GetPendingEntries() (string, error) {
 	return string(rBytes), nil
 }
 
-func GetPendingTransactions() (string, error) {
+func GetPendingTransactions(address string) (string, error) {
+	add := new(addressRequest)
+	if address == "" {
+		add = nil
+	} else {
+		add.Address = address
+	}
 
-	req := NewJSON2Request("pending-transactions", APICounter(), nil)
+	req := NewJSON2Request("pending-transactions", APICounter(), add)
 	resp, err := factomdRequest(req)
 
 	if err != nil {
