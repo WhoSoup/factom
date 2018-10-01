@@ -4,9 +4,10 @@ import (
 	"fmt"
 	"github.com/FactomProject/btcutil/base58"
 	ed "github.com/FactomProject/ed25519"
+	"bytes"
 )
 
-const StandingPartyRegistrationChainID = "0123456789abcdef"
+const StandingPartyRegistrationChainID = "305dc72e85d46573d3e1c604c30f5f1a086b2ad46b10c330029c66787a82a163"
 
 // NewStandingPartyRegistrationEntry creates and returns a new Entry struct for the registration. Publish it to the
 // blockchain using the usual factom.CommitEntry(...) and factom.RevealEntry(...) calls.
@@ -39,23 +40,39 @@ func NewFCTStakingEntry(identityChainID string) (*Entry, *FactoidAddress, error)
 	signature := ed.Sign(f.SecFixed(), []byte(identityChainID))
 	entry := Entry{}
 	entry.ChainID = StandingPartyRegistrationChainID
-	entry.ExtIDs = [][]byte{[]byte("StakeFCTAddress"), []byte(identityChainID), signature[:], []byte(f.String())}
+	entry.ExtIDs = [][]byte{[]byte("StakeFCTAddress"), []byte(identityChainID), signature[:], []byte(f.String()), f.PubBytes()}
 	return &entry, f, nil
 }
 
 func IsValidFCTStakingEntry(identityChainID string, e *Entry) bool {
-	if len(e.ExtIDs) != 4 || string(e.ExtIDs[0]) == "StakeFCTAddress" || string(e.ExtIDs[1]) != identityChainID {
+	if len(e.ExtIDs) != 5 || string(e.ExtIDs[0]) == "StakeFCTAddress" || string(e.ExtIDs[1]) != identityChainID {
 		return false
 	}
 
+	// Check that the bytes of the public key are present
+	if len(e.ExtIDs[4]) != 32 {
+		return false
+	}
 	var signerKey [32]byte
-	fPubString := string(e.ExtIDs[3])
-	if AddressStringType(fPubString) != FactoidPub {
+	copy(signerKey[:], e.ExtIDs[4])
+
+	// Check that the address is the correct type
+	fAddress := string(e.ExtIDs[3])
+	if AddressStringType(fAddress) != FactoidPub {
 		return false
 	}
-	b := base58.Decode(fPubString)
-	copy(signerKey[:], b[PrefixLength:BodyLength])
+	b := base58.Decode(fAddress)
 
+	// Check that the RCD hashes match for the provided FCT address and public key bytes
+	var rcdHash []byte
+	copy(rcdHash[:], b[PrefixLength:BodyLength])
+	r := NewRCD1()
+	r.Pub = &signerKey
+	if bytes.Compare(rcdHash, r.Hash()) != 0 {
+		return false
+	}
+
+	// Check that the signature can be verified
 	var signature [64]byte
 	copy(signature[:], e.ExtIDs[2])
 	return ed.Verify(&signerKey, []byte(identityChainID), &signature)
@@ -82,6 +99,7 @@ func IsValidECStakingEntry(identityChainID string, e *Entry) bool {
 		return false
 	}
 
+	// Check the address is the correct type
 	var signerKey [32]byte
 	ecPubString := string(e.ExtIDs[3])
 	if AddressStringType(ecPubString) != ECPub {
@@ -90,6 +108,7 @@ func IsValidECStakingEntry(identityChainID string, e *Entry) bool {
 	b := base58.Decode(ecPubString)
 	copy(signerKey[:], b[PrefixLength:BodyLength])
 
+	// Check that the signature can be verified
 	var signature [64]byte
 	copy(signature[:], e.ExtIDs[2])
 	return ed.Verify(&signerKey, []byte(identityChainID), &signature)
