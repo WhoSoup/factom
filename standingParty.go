@@ -45,7 +45,7 @@ func NewFCTStakingEntry(identityChainID string) (*Entry, *FactoidAddress, error)
 }
 
 func IsValidFCTStakingEntry(identityChainID string, e *Entry) bool {
-	if len(e.ExtIDs) != 5 || string(e.ExtIDs[0]) == "StakeFCTAddress" || string(e.ExtIDs[1]) != identityChainID {
+	if len(e.ExtIDs) != 5 || string(e.ExtIDs[0]) != "StakeFCTAddress" || string(e.ExtIDs[1]) != identityChainID {
 		return false
 	}
 
@@ -64,8 +64,7 @@ func IsValidFCTStakingEntry(identityChainID string, e *Entry) bool {
 	b := base58.Decode(fAddress)
 
 	// Check that the RCD hashes match for the provided FCT address and public key bytes
-	var rcdHash []byte
-	copy(rcdHash[:], b[PrefixLength:BodyLength])
+	rcdHash := b[PrefixLength:BodyLength]
 	r := NewRCD1()
 	r.Pub = &signerKey
 	if bytes.Compare(rcdHash, r.Hash()) != 0 {
