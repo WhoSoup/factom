@@ -5,26 +5,25 @@ import (
 	"github.com/FactomProject/btcutil/base58"
 	ed "github.com/FactomProject/ed25519"
 	"bytes"
+	"time"
+	"crypto/sha256"
 )
 
 const StandingPartyRegistrationChainID = "305dc72e85d46573d3e1c604c30f5f1a086b2ad46b10c330029c66787a82a163"
 
 // NewStandingPartyRegistrationEntry creates and returns a new Entry struct for the registration. Publish it to the
 // blockchain using the usual factom.CommitEntry(...) and factom.RevealEntry(...) calls.
-func NewStandingPartyRegistrationEntry(identityChainID string, signerKey *IdentityKey) (*Entry, error) {
-	heights, err := GetHeights()
-	if err != nil {
-		return nil, err
-	}
+func NewStandingPartyRegistrationEntry(identityChainID string, signerKey *IdentityKey) *Entry {
+	nonce := sha256.Sum256([]byte(time.Now().String()))
 
-	activationHeight := fmt.Sprintf("%d", heights.LeaderHeight)
-	msg := []byte(StandingPartyRegistrationChainID + activationHeight)
-	signature := signerKey.Sign([]byte(msg))
+	msg := []byte("StandingPartyRegistrationChainID")
+	msg = append(msg, nonce[:]...)
+	signature := signerKey.Sign(msg)
 
 	entry := Entry{}
 	entry.ChainID = StandingPartyRegistrationChainID
-	entry.ExtIDs = [][]byte{[]byte("RegisterStandingParty"), []byte(identityChainID), []byte(activationHeight), signature[:], []byte(signerKey.String())}
-	return &entry, nil
+	entry.ExtIDs = [][]byte{[]byte("RegisterStandingParty"), []byte(identityChainID), nonce[:], signature[:], []byte(signerKey.String())}
+	return &entry
 }
 
 
@@ -37,7 +36,7 @@ func NewFCTStakingEntry(identityChainID string) (*Entry, *FactoidAddress, error)
 		return nil, nil, err
 	}
 
-	signature := ed.Sign(f.SecFixed(), []byte(identityChainID))
+	signature := ed.Sign(f.SecFixed(), []byte("StakeFCTAddress" + identityChainID))
 	entry := Entry{}
 	entry.ChainID = StandingPartyRegistrationChainID
 	entry.ExtIDs = [][]byte{[]byte("StakeFCTAddress"), []byte(identityChainID), signature[:], []byte(f.String()), f.PubBytes()}
@@ -74,7 +73,7 @@ func IsValidFCTStakingEntry(identityChainID string, e *Entry) bool {
 	// Check that the signature can be verified
 	var signature [64]byte
 	copy(signature[:], e.ExtIDs[2])
-	return ed.Verify(&signerKey, []byte(identityChainID), &signature)
+	return ed.Verify(&signerKey, []byte("StakeFCTAddress" + identityChainID), &signature)
 }
 
 // NewFCTStakingEntry generates and returns a new Entry Credit address and an Entry struct that contains a message
@@ -86,7 +85,7 @@ func NewECStakingEntry(identityChainID string) (*Entry, *ECAddress, error) {
 		return nil, nil, err
 	}
 
-	signature := ec.Sign([]byte(identityChainID))
+	signature := ec.Sign([]byte("StakeECAddress" + identityChainID))
 	entry := Entry{}
 	entry.ChainID = StandingPartyRegistrationChainID
 	entry.ExtIDs = [][]byte{[]byte("StakeECAddress"), []byte(identityChainID), signature[:], []byte(ec.String())}
@@ -110,7 +109,7 @@ func IsValidECStakingEntry(identityChainID string, e *Entry) bool {
 	// Check that the signature can be verified
 	var signature [64]byte
 	copy(signature[:], e.ExtIDs[2])
-	return ed.Verify(&signerKey, []byte(identityChainID), &signature)
+	return ed.Verify(&signerKey, []byte("StakeECAddress" + identityChainID), &signature)
 }
 
 func GetStakedECAddressesAtHeight(identityChainID string, height int64) ([]string, error) {
