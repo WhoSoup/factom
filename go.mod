@@ -1,0 +1,50 @@
+module github.com/FactomProject/factom
+
+go 1.14
+
+require (
+	github.com/FactomProject/FactomCode v0.3.6-0.20171228170625-d7e03150a9d5
+	github.com/FactomProject/basen v0.0.0-20150613233007-fe3947df716e
+	github.com/FactomProject/bolt v1.1.1-0.20170202195217-952a1b4e9a55
+	github.com/FactomProject/btcutil v0.0.0-20160826074221-43986820ccd5
+	github.com/FactomProject/btcutilecc v0.0.0-20130527213604-d3a63a5752ec
+	github.com/FactomProject/ed25519 v0.0.0-20150814230546-38002c4fe7b6
+	github.com/FactomProject/factoid v0.3.5-0.20160420180514-3ee9763f8684
+	github.com/FactomProject/factomd v6.3.3-rc1+incompatible
+	github.com/FactomProject/go-bip32 v0.3.6-0.20161206200006-3b593af1c415
+	github.com/FactomProject/go-bip39 v0.3.6-0.20161217174232-d1007fb78d9a
+	github.com/FactomProject/go-bip44 v0.0.0-20190306062959-b541a96d8da9
+	github.com/FactomProject/go-simplejson v0.5.0
+	github.com/FactomProject/go-spew v0.0.0-20160301052117-ddfaec9b42f5
+	github.com/FactomProject/goleveldb v0.2.2-0.20170418171130-e7800c6976c5
+	github.com/FactomProject/logrustash v0.0.0-20171005151533-9c7278ede46e
+	github.com/FactomProject/netki-go-partner-client v0.0.0-20160324224126-426acb535e66
+	github.com/FactomProject/serveridentity v0.0.0-20180611231115-cf42d2aa8deb
+	github.com/FactomProject/snappy-go v0.0.0-20170202213131-f2f83b22c29e
+	github.com/FactomProject/web v0.1.1-0.20190114231934-951cacf54656
+	github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973
+	github.com/btcsuitereleases/btcutil v0.0.0-20150612230727-f2b1058a8255
+	github.com/golang/protobuf v1.2.1-0.20181030154721-1918e1ff6ffd
+	github.com/hashicorp/go-hclog v0.9.3-0.20190514033442-f1d61ad5398f
+	github.com/hashicorp/go-plugin v1.0.1-0.20190610192547-a1bc61569a26
+	github.com/hashicorp/yamux v0.0.0-20181012175058-2f1d1f20f75d
+	github.com/konsorten/go-windows-terminal-sequences v1.0.1
+	github.com/matttproud/golang_protobuf_extensions v1.0.1
+	github.com/mitchellh/go-testing-interface v1.0.0
+	github.com/oklog/run v1.0.1-0.20180308005104-6934b124db28
+	github.com/prometheus/client_golang v0.9.1-0.20181025174421-f30f42803563
+	github.com/prometheus/client_model v0.0.0-20180712105110-5c3871d89910
+	github.com/prometheus/common v0.0.0-20181020173914-7e9e6cabbd39
+	github.com/prometheus/procfs v0.0.0-20181005140218-185b4288413d
+	github.com/rs/cors v1.6.1-0.20181011182759-a3460e445dd3
+	github.com/sirupsen/logrus v1.1.2-0.20181029060839-566a5f690849
+	github.com/stretchr/testify v1.3.1-0.20190311161405-34c6fa2dc709
+	golang.org/x/crypto v0.0.0-20181030102418-4d3f4d9ffa16
+	golang.org/x/net v0.0.0-20181029044818-c44066c5c816
+	golang.org/x/sys v0.0.0-20181030150119-7e31e0c00fa0
+	golang.org/x/text v0.3.2
+	google.golang.org/genproto v0.0.0-20180608181217-32ee49c4dd80
+	google.golang.org/grpc v1.2.1-0.20190612225639-684ef046099f
+	gopkg.in/gcfg.v1 v1.2.3
+	gopkg.in/warnings.v0 v0.1.2
+)
