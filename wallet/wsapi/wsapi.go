@@ -22,8 +22,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/FactomProject/btcutil/certs"
 	"github.com/FactomProject/factom"
+	"github.com/FactomProject/factom/certs"
 	"github.com/FactomProject/factom/wallet"
 	"github.com/FactomProject/factomd/common/factoid"
 	"github.com/FactomProject/factomd/common/interfaces"

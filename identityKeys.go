@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 
-	"github.com/FactomProject/btcutil/base58"
 	ed "github.com/FactomProject/ed25519"
 	"github.com/FactomProject/go-bip44"
+	"github.com/mr-tron/base58"
 )
 
 type identityKeyStringType byte
@@ -29,7 +29,10 @@ var (
 )
 
 func IdentityKeyStringType(s string) identityKeyStringType {
-	p := base58.Decode(s)
+	p, err := base58.Decode(s)
+	if err != nil {
+		return InvalidIdentityKey
+	}
 
 	if len(p) != IDKeyLength {
 		return InvalidIdentityKey
@@ -54,7 +57,10 @@ func IdentityKeyStringType(s string) identityKeyStringType {
 }
 
 func IsValidIdentityKey(s string) bool {
-	p := base58.Decode(s)
+	p, err := base58.Decode(s)
+	if err != nil {
+		return false
+	}
 
 	if len(p) != IDKeyLength {
 		return false
@@ -121,7 +127,10 @@ func GetIdentityKey(s string) (*IdentityKey, error) {
 	if !IsValidIdentityKey(s) {
 		return nil, fmt.Errorf("invalid Identity Private Key")
 	}
-	p := base58.Decode(s)
+	p, err := base58.Decode(s)
+	if err != nil {
+		return nil, err
+	}
 
 	if !bytes.Equal(p[:IDKeyPrefixLength], idSecPrefix) {
 		return nil, fmt.Errorf("invalid Identity Private Key")

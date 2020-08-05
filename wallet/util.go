@@ -8,7 +8,7 @@ import (
 	"bytes"
 	"crypto/sha256"
 
-	"github.com/FactomProject/btcutil/base58"
+	"github.com/mr-tron/base58"
 )
 
 const (

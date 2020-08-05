@@ -7,8 +7,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/FactomProject/btcutil/base58"
 	ed "github.com/FactomProject/ed25519"
+	"github.com/mr-tron/base58"
 )
 
 // An Identity is an array of names and a hierarchy of keys. It can assign/receive
@@ -101,7 +101,10 @@ func GetActiveIdentityKeysAtHeight(chainID string, height int64) ([]string, erro
 		} else if _, present := allKeys[pubString]; present {
 			continue
 		}
-		pub := base58.Decode(pubString)
+		pub, err := base58.Decode(pubString)
+		if err != nil {
+			return nil, err
+		}
 		k := NewIdentityKey()
 		copy(k.Pub[:], pub[IDKeyPrefixLength:IDKeyBodyLength])
 		activeKeys = append(activeKeys, k)
@@ -121,7 +124,10 @@ func GetActiveIdentityKeysAtHeight(chainID string, height int64) ([]string, erro
 		if IdentityKeyStringType(oldPubString) != IDPub {
 			continue
 		}
-		b := base58.Decode(oldPubString)
+		b, err := base58.Decode(oldPubString)
+		if err != nil {
+			continue
+		}
 		copy(oldKey[:], b[IDKeyPrefixLength:IDKeyBodyLength])
 
 		var newKey [ed.PublicKeySize]byte
@@ -129,7 +135,10 @@ func GetActiveIdentityKeysAtHeight(chainID string, height int64) ([]string, erro
 		if IdentityKeyStringType(newPubString) != IDPub {
 			continue
 		}
-		b = base58.Decode(newPubString)
+		b, err = base58.Decode(newPubString)
+		if err != nil {
+			continue
+		}
 		copy(newKey[:], b[IDKeyPrefixLength:IDKeyBodyLength])
 
 		// Disallow re-adding retired or currently active keys
@@ -255,7 +264,10 @@ func IsValidAttribute(e *Entry) bool {
 	if IdentityKeyStringType(signerPubString) != IDPub {
 		return false
 	}
-	b := base58.Decode(signerPubString)
+	b, err := base58.Decode(signerPubString)
+	if err != nil {
+		return false
+	}
 	copy(signerKey[:], b[IDKeyPrefixLength:IDKeyBodyLength])
 
 	// Message that was signed = ReceiverChainID + DestinationChainID + AttributesJSON
@@ -284,7 +296,11 @@ func IsValidEndorsement(e *Entry) bool {
 	if IdentityKeyStringType(signerPubString) != IDPub {
 		return false
 	}
-	b := base58.Decode(signerPubString)
+	b, err := base58.Decode(signerPubString)
+	if err != nil {
+		return false
+	}
+
 	copy(signerKey[:], b[IDKeyPrefixLength:IDKeyBodyLength])
 
 	// Message that was signed = DestinationChainID + AttributeEntryHash

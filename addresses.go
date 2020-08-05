@@ -9,11 +9,11 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/FactomProject/btcutil/base58"
 	ed "github.com/FactomProject/ed25519"
 	"github.com/FactomProject/go-bip32"
 	"github.com/FactomProject/go-bip39"
 	"github.com/FactomProject/go-bip44"
+	"github.com/mr-tron/base58"
 )
 
 // Common Address errors
@@ -53,7 +53,10 @@ var (
 // AddressStringType must return one of the defined address types;
 // InvalidAddress, FactoidPub, FactoidSec, ECPub, or ECSec.
 func AddressStringType(s string) addressStringType {
-	p := base58.Decode(s)
+	p, err := base58.Decode(s)
+	if err != nil {
+		return InvalidAddress
+	}
 
 	if len(p) != AddressLength {
 		return InvalidAddress
@@ -142,7 +145,10 @@ func GetECAddress(s string) (*ECAddress, error) {
 		return nil, ErrInvalidAddress
 	}
 
-	p := base58.Decode(s)
+	p, err := base58.Decode(s)
+	if err != nil {
+		return nil, ErrInvalidECSec
+	}
 
 	if !bytes.Equal(p[:PrefixLength], ecSecPrefix) {
 		return nil, ErrInvalidECSec
@@ -272,7 +278,10 @@ func GetFactoidAddress(s string) (*FactoidAddress, error) {
 		return nil, ErrInvalidAddress
 	}
 
-	p := base58.Decode(s)
+	p, err := base58.Decode(s)
+	if err != nil {
+		return nil, ErrInvalidFactoidSec
+	}
 
 	if !bytes.Equal(p[:PrefixLength], fcSecPrefix) {
 		return nil, ErrInvalidFactoidSec

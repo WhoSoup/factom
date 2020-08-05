@@ -10,11 +10,11 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/FactomProject/btcutil/base58"
 	"github.com/FactomProject/factom"
 	"github.com/FactomProject/factomd/common/factoid"
 	"github.com/FactomProject/factomd/common/primitives"
 	"github.com/FactomProject/goleveldb/leveldb"
+	"github.com/mr-tron/base58"
 )
 
 var (
@@ -106,7 +106,11 @@ func (w *Wallet) AddOutput(name, address string, amount uint64) error {
 		return errors.New("Invalid Factoid Address")
 	}
 
-	adr := factoid.NewAddress(base58.Decode(address)[2:34])
+	b58, err := base58.Decode(address)
+	if err != nil {
+		return err
+	}
+	adr := factoid.NewAddress(b58[2:34])
 
 	// First look if this is really an update
 	for _, output := range tx.GetOutputs() {
@@ -132,7 +136,11 @@ func (w *Wallet) AddECOutput(name, address string, amount uint64) error {
 		return errors.New("Invalid Entry Credit Address")
 	}
 
-	adr := factoid.NewAddress(base58.Decode(address)[2:34])
+	b58, err := base58.Decode(address)
+	if err != nil {
+		return err
+	}
+	adr := factoid.NewAddress(b58[2:34])
 
 	// First look if this is really an update
 	for _, output := range tx.GetECOutputs() {
@@ -230,7 +238,11 @@ func (w *Wallet) SubFee(name, address string, rate uint64) error {
 		return err
 	}
 
-	adr := factoid.NewAddress(base58.Decode(address)[2:34])
+	b58, err := base58.Decode(address)
+	if err != nil {
+		return err
+	}
+	adr := factoid.NewAddress(b58[2:34])
 
 	for _, output := range tx.GetOutputs() {
 		if output.GetAddress().IsSameAs(adr) {
